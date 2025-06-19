@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atualizar em Lote</title>
+  <style>
+    body { background: #191b1e; color: #fff; font-family: 'Poppins',sans-serif; margin:0;}
+    .container { max-width: 700px; margin: 2rem auto; padding: 2rem; background: #23272f; border-radius: 16px; box-shadow: 0 2px 12px #0006; }
+    h2 { color: #00d4ff; }
+    textarea { width: 100%; height: 200px; border-radius: 8px; background: #222; color: #fff; border: none; padding: 1rem; margin-bottom: 1rem;}
+    button { padding: 1rem 2rem; background: #0af; color: #fff; border: none; border-radius: 8px; font-weight: bold;}
+    .msg { margin-top: 1rem;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Atualização em Lote via CSV</h2>
+    <textarea id="csv" placeholder="Cole aqui o CSV (TAG,STATUS,MOTIVO,PTS,OS,RETORNO,CADEADO,OBSERVACOES,MODIFICADO_POR,DATA)"></textarea>
+    <button onclick="enviarCSV()">Atualizar em Lote</button>
+    <div class="msg" id="msg"></div>
+  </div>
+  <script>
+    const endpoint = "https://script.google.com/macros/s/AKfycbzHw6qRm9QHOBIZYuyfRpEDVLztVNTl826yf3lJR5rJfP69ZRZL90z4X3GKLZv3ejWW/exec";
+    function enviarCSV() {
+      const msg = document.getElementById('msg');
+      const linhas = document.getElementById('csv').value.trim().split('\n');
+      let ok = 0, erro = 0;
+      linhas.forEach(linha => {
+        const cols = linha.split(',');
+        if (cols.length >= 2) {
+          const dados = {
+            TAG: cols[0], STATUS: cols[1], MOTIVO: cols[2]||'', PTS: cols[3]||'',
+            OS: cols[4]||'', RETORNO: cols[5]||'', CADEADO: cols[6]||'',
+            OBSERVACOES: cols[7]||'', MODIFICADO_POR: cols[8]||'lote', DATA: cols[9]||new Date().toISOString()
+          };
+          fetch(endpoint, { method: 'POST', body: JSON.stringify(dados), headers: {'Content-Type': 'application/json'} })
+            .then(res => res.json()).then(() => { ok++; msg.textContent = `Atualizado: ${ok}`; })
+            .catch(() => { erro++; msg.textContent = `Erros: ${erro}`; });
+        }
+      });
+    }
+  </script>
+</body>
+</html>
