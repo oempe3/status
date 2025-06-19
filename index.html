@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acesso - Quadro de disponibilidade</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="login-box">
+    <img src="logomarca.png" alt="Logo Pernambuco III">
+    <h2>Acesso ao Sistema</h2>
+    <input type="text" id="login" placeholder="Login">
+    <input type="password" id="senha" placeholder="Senha">
+    <button onclick="entrar()">Entrar</button>
+    <div id="mensagem" class="error"></div>
+  </div>
+  <script>
+    function entrar() {
+      const login = document.getElementById("login").value.toLowerCase();
+      const senha = document.getElementById("senha").value;
+      if (login === "admin" && senha === "admin") {
+        window.location.href = "entrada.html";
+      } else if (login === "operador" && senha === "operador") {
+        window.location.href = "status.html";
+      } else {
+        document.getElementById("mensagem").textContent = "Login ou senha inválidos.";
+      }
+    }
+  </script>
+</body>
+</html>

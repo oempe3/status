@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Status - Pernambuco III</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+  <header>
+    <img src="logomarca.png" alt="Logo Pernambuco III">
+    <nav>
+      <a href="status.html">Status</a> |
+      <a href="entrada.html">Atualizar</a> |
+      <a href="csv_update.html">CSV Lote</a> |
+      <a href="index.html" style="color:#ff6b6b">Sair</a>
+    </nav>
+  </header>
+  <div class="container">
+    <div class="equipamentos-grid" id="equipamentos-container"></div>
+  </div>
+  <script>
+    const endpoint = "https://script.google.com/macros/s/AKfycbzHw6qRm9QHOBIZYuyfRpEDVLztVNTl826yf3lJR5rJfP69ZRZL90z4X3GKLZv3ejWW/exec";
+    function renderEquipamentos(data) {
+      const container = document.getElementById('equipamentos-container');
+      container.innerHTML = '';
+      data.forEach(equip => {
+        const card = document.createElement('div');
+        card.className = 'equipamento-card';
+        card.innerHTML = `
+          <div class="equipamento-nome">${equip.TAG}</div>
+          <div class="equipamento-status status-${equip.STATUS || ''}">${equip.STATUS || '-'}</div>
+          <div class="equipamento-detalhes">
+            <div><strong>Motivo:</strong> ${equip.MOTIVO || '-'}</div>
+            <div><strong>PTS:</strong> ${equip.PTS || '-'}</div>
+            <div><strong>OS:</strong> ${equip.OS || '-'}</div>
+            <div><strong>Retorno:</strong> ${equip.RETORNO || '-'}</div>
+            <div><strong>Cadeado:</strong> ${equip.CADEADO || '-'}</div>
+            <div><strong>Observações:</strong> ${equip.OBSERVACOES || '-'}</div>
+            <div><small>Por: ${equip.MODIFICADO_POR || '-'}<br>${equip.DATA ? new Date(equip.DATA).toLocaleString('pt-BR') : '-'}</small></div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+    function carregar() {
+      fetch(endpoint)
+        .then(res => res.json())
+        .then(data => renderEquipamentos(data));
+    }
+    carregar();
+    setInterval(carregar, 30000);
+  </script>
+</body>
+</html>
