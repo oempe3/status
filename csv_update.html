@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atualização CSV - Pernambuco III</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+  <header class="main-header">
+    <div class="header-content">
+      <div class="header-left">
+        <img src="logomarca.png" alt="Logo Pernambuco III" class="header-logo">
+        <div>
+          <div class="header-title">Quadro de Disponibilidade</div>
+          <div class="header-subtitle">Sistema de Monitoramento de Equipamentos</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="header-time" id="relogio"></div>
+        <nav class="header-nav">
+          <a href="status.html" class="nav-button">Ver Status</a>
+          <a href="entrada.html" class="nav-button">Atualizar</a>
+          <a href="csv_update.html" class="nav-button primary">Atualizar CSV</a>
+          <a href="index.html" class="nav-button danger">Sair</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <div class="page-title">Atualização em Lote via CSV</div>
+    <div class="page-description">Importe um arquivo CSV para atualizar múltiplos equipamentos simultaneamente</div>
+    
+    <div class="form-grid">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Upload de Arquivo CSV</div>
+          <div class="card-description">Selecione um arquivo CSV com os dados dos equipamentos</div>
+        </div>
+        <div class="card-content">
+          <div class="form-group">
+            <label class="form-label" for="csv-file">Arquivo CSV</label>
+            <input type="file" id="csv-file" class="form-input" accept=".csv" onchange="processarCSV()">
+            <div class="text-xs mt-2" style="color: var(--gray-500);">
+              Formato esperado: TAG, STATUS, MOTIVO, PTS, OS, RETORNO, CADEADO, OBSERVACOES
+            </div>
+          </div>
+          
+          <div id="csv-preview" style="display: none;">
+            <div class="form-label">Prévia dos Dados</div>
+            <div class="card" style="background: var(--gray-50); border: 1px solid var(--gray-200); max-height: 300px; overflow-y: auto;">
+              <div class="card-content" style="padding: var(--spacing-4);">
+                <table id="preview-table" style="width: 100%; font-size: var(--font-size-sm);">
+                  <thead>
+                    <tr style="border-bottom: 1px solid var(--gray-300);">
+                      <th style="text-align: left; padding: var(--spacing-2);">TAG</th>
+                      <th style="text-align: left; padding: var(--spacing-2);">STATUS</th>
+                      <th style="text-align: left; padding: var(--spacing-2);">MOTIVO</th>
+                      <th style="text-align: left; padding: var(--spacing-2);">PTS</th>
+                      <th style="text-align: left; padding: var(--spacing-2);">OS</th>
+                    </tr>
+                  </thead>
+                  <tbody id="preview-body"></tbody>
+                </table>
+              </div>
+            </div>
+            
+            <button onclick="enviarCSV()" class="form-button full-width" style="margin-top: var(--spacing-4);">
+              <span id="upload-text">Enviar Dados</span>
+              <div id="upload-loader" class="loading-spinner" style="display: none;"></div>
+            </button>
+          </div>
+          
+          <div id="upload-message" style="display: none;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Instruções</div>
+          <div class="card-description">Como preparar seu arquivo CSV</div>
+        </div>
+        <div class="card-content">
+          <div class="text-sm" style="line-height: 1.6;">
+            <p style="margin-bottom: var(--spacing-3);"><strong>Formato do arquivo:</strong></p>
+            <ul style="margin-left: var(--spacing-4); margin-bottom: var(--spacing-4);">
+              <li>Arquivo deve ter extensão .csv</li>
+              <li>Primeira linha deve conter os cabeçalhos</li>
+              <li>Separador deve ser vírgula (,)</li>
+              <li>Codificação UTF-8</li>
+            </ul>
+            
+            <p style="margin-bottom: var(--spacing-3);"><strong>Colunas obrigatórias:</strong></p>
+            <ul style="margin-left: var(--spacing-4); margin-bottom: var(--spacing-4);">
+              <li><strong>TAG:</strong> Identificação do equipamento</li>
+              <li><strong>STATUS:</strong> OPE, ST-BY ou MANU</li>
+            </ul>
+            
+            <p style="margin-bottom: var(--spacing-3);"><strong>Colunas opcionais:</strong></p>
+            <ul style="margin-left: var(--spacing-4); margin-bottom: var(--spacing-4);">
+              <li><strong>MOTIVO:</strong> Motivo da alteração</li>
+              <li><strong>PTS:</strong> Número da PTS</li>
+              <li><strong>OS:</strong> Número da OS</li>
+              <li><strong>RETORNO:</strong> Data de retorno (YYYY-MM-DD HH:MM)</li>
+              <li><strong>CADEADO:</strong> Número do cadeado</li>
+              <li><strong>OBSERVACOES:</strong> Observações adicionais</li>
+            </ul>
+            
+            <div class="card" style="background: var(--primary-light); border: 1px solid var(--primary-color); padding: var(--spacing-3);">
+              <strong>Exemplo de arquivo CSV:</strong><br>
+              <code style="font-size: var(--font-size-xs);">
+                TAG,STATUS,MOTIVO,PTS,OS<br>
+                UG#01,OPE,,123,456<br>
+                UG#02,MANU,Manutenção preventiva,124,457
+              </code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="results-section" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Resultado do Processamento</div>
+          <div class="card-description">Status da atualização dos equipamentos</div>
+        </div>
+        <div class="card-content">
+          <div id="results-content"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Endpoint do Google Apps Script
+    const endpoint = "https://script.google.com/macros/s/AKfycbzHw6qRm9QHOBIZYuyfRpEDVLztVNTl826yf3lJR5rJfP69ZRZL90z4X3GKLZv3ejWW/exec";
+    
+    let csvData = [];
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', function() {
+      atualizarRelogio();
+      setInterval(atualizarRelogio, 1000);
+    });
+
+    // Atualizar relógio
+    function atualizarRelogio() {
+      const agora = new Date();
+      const relogio = document.getElementById('relogio');
+      relogio.textContent = agora.toLocaleString('pt-BR');
+    }
+
+    // Processar arquivo CSV
+    function processarCSV() {
+      const fileInput = document.getElementById('csv-file');
+      const file = fileInput.files[0];
+      
+      if (!file) {
+        return;
+      }
+      
+      if (!file.name.toLowerCase().endsWith('.csv')) {
+        mostrarMensagem('Por favor, selecione um arquivo CSV válido.', 'error');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const csv = e.target.result;
+          const lines = csv.split('\n').filter(line => line.trim());
+          
+          if (lines.length < 2) {
+            mostrarMensagem('O arquivo CSV deve conter pelo menos uma linha de cabeçalho e uma linha de dados.', 'error');
+            return;
+          }
+          
+          const headers = lines[0].split(',').map(h => h.trim().toUpperCase());
+          
+          // Validar cabeçalhos obrigatórios
+          if (!headers.includes('TAG') || !headers.includes('STATUS')) {
+            mostrarMensagem('O arquivo CSV deve conter pelo menos as colunas TAG e STATUS.', 'error');
+            return;
+          }
+          
+          csvData = [];
+          
+          for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',').map(v => v.trim());
+            const row = {};
+            
+            headers.forEach((header, index) => {
+              row[header] = values[index] || '';
+            });
+            
+            // Validar dados obrigatórios
+            if (!row.TAG || !row.STATUS) {
+              continue; // Pular linhas inválidas
+            }
+            
+            // Validar status
+            if (!['OPE', 'ST-BY', 'MANU'].includes(row.STATUS)) {
+              continue; // Pular status inválidos
+            }
+            
+            // Adicionar campos padrão
+            row.MODIFICADO_POR = 'admin'; // Pode ser dinâmico
+            row.DATA = new Date().toISOString();
+            
+            csvData.push(row);
+          }
+          
+          if (csvData.length === 0) {
+            mostrarMensagem('Nenhum registro válido encontrado no arquivo CSV.', 'error');
+            return;
+          }
+          
+          mostrarPrevia();
+          mostrarMensagem(`${csvData.length} registros válidos encontrados.`, 'success');
+          
+        } catch (error) {
+          console.error('Erro ao processar CSV:', error);
+          mostrarMensagem('Erro ao processar o arquivo CSV. Verifique o formato.', 'error');
+        }
+      };
+      
+      reader.readAsText(file);
+    }
+
+    // Mostrar prévia dos dados
+    function mostrarPrevia() {
+      const preview = document.getElementById('csv-preview');
+      const tbody = document.getElementById('preview-body');
+      
+      tbody.innerHTML = csvData.slice(0, 10).map(row => `
+        <tr style="border-bottom: 1px solid var(--gray-200);">
+          <td style="padding: var(--spacing-2);">${row.TAG}</td>
+          <td style="padding: var(--spacing-2);">
+            <span class="status-badge ${row.STATUS.toLowerCase().replace('-', '')}">${row.STATUS}</span>
+          </td>
+          <td style="padding: var(--spacing-2);">${row.MOTIVO || '-'}</td>
+          <td style="padding: var(--spacing-2);">${row.PTS || '-'}</td>
+          <td style="padding: var(--spacing-2);">${row.OS || '-'}</td>
+        </tr>
+      `).join('');
+      
+      if (csvData.length > 10) {
+        tbody.innerHTML += `
+          <tr>
+            <td colspan="5" style="padding: var(--spacing-2); text-align: center; color: var(--gray-500); font-style: italic;">
+              ... e mais ${csvData.length - 10} registros
+            </td>
+          </tr>
+        `;
+      }
+      
+      preview.style.display = 'block';
+    }
+
+    // Enviar dados CSV
+    function enviarCSV() {
+      if (csvData.length === 0) {
+        mostrarMensagem('Nenhum dado para enviar.', 'error');
+        return;
+      }
+      
+      const uploadText = document.getElementById('upload-text');
+      const uploadLoader = document.getElementById('upload-loader');
+      const uploadButton = document.querySelector('button[onclick="enviarCSV()"]');
+      
+      // Mostrar loading
+      uploadText.style.display = 'none';
+      uploadLoader.style.display = 'inline-block';
+      uploadButton.disabled = true;
+      
+      // Enviar dados em lote
+      Promise.all(csvData.map(row => 
+        fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(row)
+        })
+      ))
+      .then(responses => Promise.all(responses.map(r => r.json())))
+      .then(results => {
+        const sucessos = results.filter(r => r.success !== false).length;
+        const erros = results.length - sucessos;
+        
+        mostrarResultados(sucessos, erros, results);
+        mostrarMensagem(`Processamento concluído: ${sucessos} sucessos, ${erros} erros.`, sucessos > 0 ? 'success' : 'error');
+        
+        // Limpar formulário
+        document.getElementById('csv-file').value = '';
+        document.getElementById('csv-preview').style.display = 'none';
+        csvData = [];
+      })
+      .catch(error => {
+        console.error('Erro ao enviar dados:', error);
+        mostrarMensagem('Erro ao enviar dados. Tente novamente.', 'error');
+      })
+      .finally(() => {
+        // Restaurar botão
+        uploadText.style.display = 'inline';
+        uploadLoader.style.display = 'none';
+        uploadButton.disabled = false;
+      });
+    }
+
+    // Mostrar resultados
+    function mostrarResultados(sucessos, erros, results) {
+      const section = document.getElementById('results-section');
+      const content = document.getElementById('results-content');
+      
+      content.innerHTML = `
+        <div class="flex items-center gap-4 mb-4">
+          <div class="text-center">
+            <div class="text-2xl font-bold" style="color: var(--success-color);">${sucessos}</div>
+            <div class="text-xs" style="color: var(--gray-600);">Sucessos</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold" style="color: var(--error-color);">${erros}</div>
+            <div class="text-xs" style="color: var(--gray-600);">Erros</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold" style="color: var(--primary-color);">${results.length}</div>
+            <div class="text-xs" style="color: var(--gray-600);">Total</div>
+          </div>
+        </div>
+        
+        ${erros > 0 ? `
+          <div class="card" style="background: var(--gray-50); border: 1px solid var(--gray-200); max-height: 200px; overflow-y: auto;">
+            <div class="card-content" style="padding: var(--spacing-4);">
+              <div class="form-label">Registros com Erro</div>
+              ${results.map((result, index) => 
+                result.success === false ? `
+                  <div class="text-sm" style="color: var(--error-color); margin-bottom: var(--spacing-2);">
+                    Linha ${index + 1}: ${result.error || 'Erro desconhecido'}
+                  </div>
+                ` : ''
+              ).join('')}
+            </div>
+          </div>
+        ` : ''}
+      `;
+      
+      section.style.display = 'block';
+    }
+
+    // Mostrar mensagem
+    function mostrarMensagem(texto, tipo) {
+      const mensagem = document.getElementById('upload-message');
+      mensagem.textContent = texto;
+      mensagem.className = `message ${tipo}`;
+      mensagem.style.display = 'block';
+      
+      setTimeout(() => {
+        mensagem.style.display = 'none';
+      }, 5000);
+    }
+  </script>
+</body>
+</html>
+
